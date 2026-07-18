@@ -2,44 +2,40 @@
 
 ## 1. Architecture Goal
 
-Provide a modular, local-first platform that separates orchestration, execution, persistence, and user control while remaining independent of any single AI provider.
+Provide a modular, local-first, CLI-only system that separates command handling, domain services, orchestration, execution, verification, persistence, and provider integration.
 
 ## 2. System Context
 
 ```text
 User
- ├─ CLI
- └─ Dashboard
-       │
-       ▼
-Express API
-       │
-       ▼
-ProjectOS Core
- ├─ Workspace Engine
- ├─ Request Engine
- ├─ Specification Engine
- ├─ Planning Engine
- ├─ Orchestrator
- ├─ Scheduler
- ├─ Builder Runtime
- ├─ Verification Engine
- ├─ Reporting Engine
- ├─ Context Service
- └─ Activity Service
-       │
-       ├─ MongoDB
-       ├─ Local Filesystem
-       └─ AI Provider Adapter
+  ↓
+ProjectOS CLI
+  ↓
+Command Handlers
+  ↓
+Application Services
+  ├── Workspace Engine
+  ├── Project and Request Services
+  ├── Specification and Planning Services
+  ├── Orchestrator
+  ├── Scheduler
+  ├── Builder Runtime
+  ├── Verification Engine
+  ├── Reporting Engine
+  ├── Context Service
+  └── Activity Service
+       ├── MongoDB
+       ├── Local Filesystem
+       └── Provider Adapters / Codex CLI
 ```
+
+There is no HTTP server, REST API, browser dashboard, CORS layer, or network event stream in the MVP.
 
 ## 3. Repository Layout
 
 ```text
 projectos/
 ├── apps/
-│   ├── dashboard/
-│   ├── api/
 │   └── cli/
 ├── packages/
 │   ├── core/
@@ -60,87 +56,81 @@ projectos/
 └── package.json
 ```
 
-Use a root package manifest and npm workspaces.
+The CLI package owns parsing, prompts, formatting, and exit codes. Reusable business logic belongs in packages.
 
 ## 4. Runtime Components
 
+### CLI
+
+- Parses commands and flags.
+- Collects missing input through prompts.
+- Calls application services directly in-process.
+- Renders human or JSON output.
+- Converts typed errors into exit codes.
+
 ### Workspace Engine
 
-Responsible for initialization, path validation, project discovery, registration, repository metadata, and filesystem boundaries.
+Validates the root, discovers projects, resolves safe paths, persists local configuration, and prevents path escape.
 
-### Request Engine
+### Project and Request Services
 
-Accepts human intent and tracks its conversion into specifications, plans, and tasks.
+Manage lifecycle state and convert user intent into approved work inputs.
 
-### Specification Engine
+### Specification and Planning Services
 
-Creates and versions product specifications. Approved versions are immutable; edits create new versions.
-
-### Planning Engine
-
-Converts approved specifications into milestones, phases, dependencies, and task candidates.
+Create versioned documents. Approved versions are immutable; edits create new revisions.
 
 ### Orchestrator
 
-Runs the morning audit. It reads state and code but does not implement code changes.
+Audits and reconciles projects, generates plans and tasks, and produces reports. It never writes production code.
 
 ### Scheduler
 
-Claims approved ready tasks and assigns them to available builders. It enforces task locking and concurrency limits.
+Atomically claims executable tasks, enforces dependencies and concurrency, and coordinates local builders.
 
 ### Builder Runtime
 
-Runs a provider adapter with a bounded context package and an isolated task scope.
+Constructs bounded context, invokes a provider adapter, applies changes inside one project, runs commands, and saves evidence.
 
 ### Verification Engine
 
-Runs automated checks and evaluates acceptance criteria. It determines completed, retryable, or needs-review outcomes.
+Evaluates acceptance criteria and deterministic checks before completion.
 
-### Context Service
+### Reporting and Activity
 
-Builds revisioned context bundles from project, spec, plan, request, task, and recent activity data.
-
-### Reporting Engine
-
-Produces structured and Markdown reports from runs and activity.
-
-### Activity Service
-
-Writes append-only operational events.
+Persist append-only events and generate terminal and Markdown summaries.
 
 ## 5. Data Boundaries
 
 ### Filesystem
 
-Stores:
-
 - source code;
-- repository configuration;
-- optional project-local `AGENTS.md`;
-- generated local artifacts where approved;
-- `.projectos/workspace.json`.
+- repository-local documentation;
+- `.projectos/workspace.json`;
+- optional generated Markdown reports and logs.
 
 ### MongoDB
 
-Stores:
+- workspace and project metadata;
+- requests, specs, plans, tasks, agents, runs, reports, activities, settings, approvals, and leases.
 
-- workspaces;
-- projects;
-- specs;
-- plans;
-- requests;
-- tasks;
-- agents;
-- runs;
-- reports;
-- activities;
-- settings.
+Source files are never canonicalized into MongoDB.
 
-No source file content is persisted as the canonical copy.
+## 6. Internal Service Contract
 
-## 6. Provider Abstraction
+Command handlers depend on typed services rather than HTTP:
 
-Each provider adapter implements:
+```ts
+interface CommandContext {
+  services: ProjectOSServices;
+  output: OutputWriter;
+  signal: AbortSignal;
+}
+```
+
+Services return typed results and domain errors. They must not print directly to stdout.
+
+## 7. Provider Abstraction
 
 ```ts
 interface AgentProvider {
@@ -150,83 +140,30 @@ interface AgentProvider {
 }
 ```
 
-Provider-specific prompt formatting remains inside adapters.
+The initial adapter may invoke Codex CLI locally. Provider-specific command syntax, environment handling, and result parsing remain inside the adapter.
 
-## 7. Concurrency Model
+## 8. Concurrency and Recovery
 
-- Maximum builders is configurable, default five.
-- Tasks are atomically claimed.
-- One builder may own one task at a time.
-- Two tasks for the same project may run concurrently only when the scheduler determines they do not conflict.
-- The MVP may conservatively serialize tasks within one project.
-- Claims expire when heartbeat leases time out.
-- Stale tasks move to `needs_review` rather than automatically restarting without inspection.
+- Maximum builders defaults to five.
+- Claims are atomic and leased.
+- The MVP serializes tasks within one project unless explicitly proven safe.
+- Lease expiry moves work to a recoverable or needs-review state.
+- Long-running commands create persisted run records before execution.
+- Ctrl+C requests graceful cancellation and preserves inspectable state.
 
-## 8. Idempotency
+## 9. Idempotency
 
-Morning runs calculate a fingerprint from:
+Initialization and morning audits use fingerprints derived from configuration, approved document versions, active requests, and repository state. Repeated commands must not create duplicate projects, plans, or tasks.
 
-- project revision;
-- approved spec version;
-- approved plan version;
-- active request revisions;
-- relevant repository state.
+## 10. Security Boundaries
 
-The system must not create duplicate tasks for the same fingerprint and task intent.
-
-## 9. Eventing
-
-MVP uses MongoDB plus API polling or Server-Sent Events. Redis is not required.
-
-Events include:
-
-- workspace initialized;
-- project discovered;
-- project audited;
-- request created;
-- task generated;
-- task approved;
-- task claimed;
-- task completed;
-- verification failed;
-- agent heartbeat;
-- report generated;
-- execution paused.
-
-## 10. Error Strategy
-
-All domain operations return typed errors. Failures are categorized:
-
-- validation;
-- configuration;
-- provider;
-- filesystem;
-- repository;
-- execution;
-- verification;
-- persistence;
-- authorization boundary.
-
-Errors that require human judgment move the affected entity to `needs_review`.
-
-## 11. Security Boundaries
-
-- Resolve every path against workspace root.
+- Normalize every path against the registered root.
 - Reject traversal and symlink escape.
-- Keep secrets in environment variables.
-- Redact secrets from logs and agent prompts.
-- Restrict reset to operational data.
-- Log all destructive or privileged actions.
-- Never execute arbitrary shell input directly from dashboard fields.
+- Never pass secrets into reports, logs, or provider prompts.
+- Do not execute raw shell strings assembled from untrusted user input.
+- Reset may archive operational state but never delete project source code.
+- All privileged actions must create activity records.
 
-## 12. Deployment Model
+## 11. Deployment Model
 
-MVP runs locally:
-
-- dashboard on Vite dev server or static build;
-- Express API on localhost;
-- local CLI;
-- local or remote MongoDB;
-- locally installed AI CLI/provider.
-
-The API owns all database mutation. The dashboard and CLI are clients.
+ProjectOS is installed and executed locally as a Node.js CLI. It connects directly to MongoDB and invokes local provider tooling. No persistent application server is required.
