@@ -1,4 +1,5 @@
-import { accessSync, constants, statSync } from 'node:fs';
+import { accessSync, constants, existsSync, readFileSync, statSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 import { envSchema } from '@projectos/shared';
 
@@ -42,6 +43,20 @@ export interface DoctorReport {
   checks: DoctorCheck[];
 }
 
+interface ProjectOsConfig {
+  database?: {
+    uri?: string;
+    uriEnv?: string;
+  };
+  runtime?: {
+    defaultProvider?: string;
+    maxParallelBuilders?: number | string;
+  };
+  workspace?: {
+    root?: string;
+  };
+}
+
 /**
  * Injectable dependencies so `runDoctor` is fully testable without touching the
  * real filesystem, process, or installed packages.
@@ -49,6 +64,8 @@ export interface DoctorReport {
 export interface DoctorDeps {
   env: NodeJS.ProcessEnv;
   nodeVersion: string;
+  cwd: string;
+  readConfig: (path: string) => ProjectOsConfig | undefined;
   /** Returns true when `path` exists and is a directory. */
   directoryExists: (path: string) => boolean;
   /** Returns true when `path` is readable and writable. */
@@ -71,6 +88,16 @@ function defaultCanAccess(path: string): boolean {
     return true;
   } catch {
     return false;
+  }
+}
+
+function defaultReadConfig(path: string): ProjectOsConfig | undefined {
+  if (!existsSync(path)) return undefined;
+
+  try {
+    return JSON.parse(readFileSync(path, 'utf8')) as ProjectOsConfig;
+  } catch {
+    return undefined;
   }
 }
 
@@ -97,6 +124,8 @@ export function defaultDoctorDeps(): DoctorDeps {
   return {
     env: process.env,
     nodeVersion: process.versions.node,
+    cwd: process.cwd(),
+    readConfig: defaultReadConfig,
     directoryExists: defaultDirectoryExists,
     canAccess: defaultCanAccess,
     loadPackages: defaultLoadPackages,
@@ -108,6 +137,11 @@ function parseNodeMajor(version: string): number {
   return Number.isFinite(major) ? major : 0;
 }
 
+function resolveWorkspaceRoot(root: string | undefined, cwd: string): string | undefined {
+  if (!root?.trim()) return undefined;
+  return resolve(cwd, root.trim());
+}
+
 /**
  * Validate local readiness for ProjectOS without starting any server. Returns a
  * structured report; the caller renders it and maps `ok` to an exit code.
@@ -116,6 +150,8 @@ export function runDoctor(overrides: Partial<DoctorDeps> = {}): DoctorReport {
   const deps: DoctorDeps = { ...defaultDoctorDeps(), ...overrides };
   const env = deps.env;
   const checks: DoctorCheck[] = [];
+  const configPath = env.PROJECTOS_CONFIG_PATH?.trim() || 'projectos.config.json';
+  const config = deps.readConfig(configPath);
 
   // 1. Node version.
   const nodeMajor = parseNodeMajor(deps.nodeVersion);
@@ -131,7 +167,10 @@ export function runDoctor(overrides: Partial<DoctorDeps> = {}): DoctorReport {
   });
 
   // 2. MongoDB URI presence.
-  const mongoUri = env.MONGODB_URI?.trim();
+  const mongoUri =
+    env.MONGODB_URI?.trim() ||
+    (config?.database?.uriEnv ? env[config.database.uriEnv]?.trim() : undefined) ||
+    config?.database?.uri?.trim();
   checks.push({
     id: 'mongodb-uri',
     label: 'MongoDB URI',
@@ -143,15 +182,17 @@ export function runDoctor(overrides: Partial<DoctorDeps> = {}): DoctorReport {
   });
 
   // 3. Workspace-root configuration.
-  const workspaceRoot = env.PROJECTOS_WORKSPACE_ROOT?.trim();
+  const configuredWorkspaceRoot =
+    env.PROJECTOS_WORKSPACE_ROOT?.trim() || config?.workspace?.root?.trim();
+  const workspaceRoot = resolveWorkspaceRoot(configuredWorkspaceRoot, deps.cwd);
   checks.push({
     id: 'workspace-root-config',
     label: 'Workspace root configuration',
     required: true,
     status: workspaceRoot ? 'pass' : 'fail',
     message: workspaceRoot
-      ? `PROJECTOS_WORKSPACE_ROOT is set to "${workspaceRoot}".`
-      : 'PROJECTOS_WORKSPACE_ROOT is not set.',
+      ? `Workspace root resolves to "${workspaceRoot}".`
+      : 'PROJECTOS_WORKSPACE_ROOT is not set and no workspace.root exists in projectos.config.json.',
   });
 
   // 4. Workspace-root existence.
@@ -169,35 +210,35 @@ export function runDoctor(overrides: Partial<DoctorDeps> = {}): DoctorReport {
   });
 
   // 5. Configuration-file path.
-  const configPath =
-    env.PROJECTOS_CONFIG_PATH?.trim() || '.projectos/workspace.json';
   checks.push({
     id: 'config-path',
     label: 'Configuration file path',
     required: true,
     status: configPath ? 'pass' : 'fail',
-    message: `Configuration path resolves to "${configPath}".`,
+    message: config
+      ? `Configuration file loaded from "${configPath}".`
+      : `Configuration path resolves to "${configPath}".`,
   });
 
   // 6. Provider configuration.
-  const provider = env.AI_PROVIDER?.trim() || 'codex';
+  const provider = env.AI_PROVIDER?.trim() || config?.runtime?.defaultProvider?.trim() || 'codex';
   checks.push({
     id: 'provider',
     label: 'Provider configuration',
     required: true,
     status: provider ? 'pass' : 'fail',
-    message: provider
-      ? `AI provider is "${provider}".`
-      : 'No AI provider is configured.',
+    message: provider ? `AI provider is "${provider}".` : 'No AI provider is configured.',
   });
 
   // 7. Maximum builders does not exceed the limit.
   const rawMaxBuilders = env.PROJECTOS_MAX_BUILDERS?.trim();
-  const maxBuilders = rawMaxBuilders ? Number(rawMaxBuilders) : MAX_BUILDERS_LIMIT;
+  const rawConfiguredMaxBuilders =
+    rawMaxBuilders ?? config?.runtime?.maxParallelBuilders?.toString();
+  const maxBuilders = rawConfiguredMaxBuilders
+    ? Number(rawConfiguredMaxBuilders)
+    : MAX_BUILDERS_LIMIT;
   const maxBuildersValid =
-    Number.isInteger(maxBuilders) &&
-    maxBuilders >= 1 &&
-    maxBuilders <= MAX_BUILDERS_LIMIT;
+    Number.isInteger(maxBuilders) && maxBuilders >= 1 && maxBuilders <= MAX_BUILDERS_LIMIT;
   checks.push({
     id: 'max-builders',
     label: 'Maximum builders',
@@ -205,7 +246,7 @@ export function runDoctor(overrides: Partial<DoctorDeps> = {}): DoctorReport {
     status: maxBuildersValid ? 'pass' : 'fail',
     message: maxBuildersValid
       ? `PROJECTOS_MAX_BUILDERS is ${maxBuilders} (limit ${MAX_BUILDERS_LIMIT}).`
-      : `PROJECTOS_MAX_BUILDERS must be an integer between 1 and ${MAX_BUILDERS_LIMIT}; got "${rawMaxBuilders}".`,
+      : `PROJECTOS_MAX_BUILDERS must be an integer between 1 and ${MAX_BUILDERS_LIMIT}; got "${rawConfiguredMaxBuilders}".`,
   });
 
   // 8. Ability to load core packages.
@@ -236,7 +277,14 @@ export function runDoctor(overrides: Partial<DoctorDeps> = {}): DoctorReport {
   });
 
   // Also surface aggregate environment validation (shared package) as context.
-  const envResult = envSchema.safeParse(env);
+  const envResult = envSchema.safeParse({
+    ...env,
+    AI_PROVIDER: provider,
+    MONGODB_URI: mongoUri,
+    PROJECTOS_CONFIG_PATH: configPath,
+    PROJECTOS_MAX_BUILDERS: rawConfiguredMaxBuilders,
+    PROJECTOS_WORKSPACE_ROOT: workspaceRoot,
+  });
   checks.push({
     id: 'env-validation',
     label: 'Environment validation',

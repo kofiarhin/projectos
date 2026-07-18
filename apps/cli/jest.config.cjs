@@ -7,6 +7,6 @@ module.exports = {
     '^@projectos/shared$': '<rootDir>/../../packages/shared/src/index.ts',
   },
   transform: {
-    '^.+\\.ts$': ['ts-jest', { isolatedModules: true }],
+    '^.+\\.ts$': ['ts-jest'],
   },
 };

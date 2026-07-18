@@ -13,6 +13,8 @@ function baseDeps(overrides: Partial<DoctorDeps> = {}): Partial<DoctorDeps> {
   return {
     env: validEnv,
     nodeVersion: '20.11.0',
+    cwd: '/repo',
+    readConfig: () => undefined,
     directoryExists: () => true,
     canAccess: () => true,
     loadPackages: (names) => ({ loaded: [...names], failed: [] }),
@@ -35,12 +37,28 @@ describe('runDoctor', () => {
   });
 
   it('fails when MongoDB URI is missing', () => {
-    const report = runDoctor(
-      baseDeps({ env: { ...validEnv, MONGODB_URI: undefined } }),
-    );
+    const report = runDoctor(baseDeps({ env: { ...validEnv, MONGODB_URI: undefined } }));
 
     expect(report.ok).toBe(false);
     expect(checkById(report, 'mongodb-uri').status).toBe('fail');
+  });
+
+  it('uses the project config as a fallback when environment variables are absent', () => {
+    const report = runDoctor(
+      baseDeps({
+        env: {},
+        readConfig: () => ({
+          database: { uri: 'mongodb://127.0.0.1:27017/projectos' },
+          runtime: { defaultProvider: 'codex', maxParallelBuilders: 5 },
+          workspace: { root: '.' },
+        }),
+      }),
+    );
+
+    expect(report.ok).toBe(true);
+    expect(checkById(report, 'mongodb-uri').status).toBe('pass');
+    expect(checkById(report, 'workspace-root-config').status).toBe('pass');
+    expect(checkById(report, 'env-validation').status).toBe('pass');
   });
 
   it('fails when the workspace path does not exist', () => {
@@ -53,9 +71,7 @@ describe('runDoctor', () => {
   });
 
   it('fails when maximum builders exceeds the limit', () => {
-    const report = runDoctor(
-      baseDeps({ env: { ...validEnv, PROJECTOS_MAX_BUILDERS: '6' } }),
-    );
+    const report = runDoctor(baseDeps({ env: { ...validEnv, PROJECTOS_MAX_BUILDERS: '6' } }));
 
     expect(report.ok).toBe(false);
     expect(checkById(report, 'max-builders').status).toBe('fail');

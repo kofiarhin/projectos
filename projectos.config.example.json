@@ -1,29 +1,29 @@
 {
-  "workspaceName": "My Workspace",
-  "workspaceRoot": "/absolute/path/to/projects",
+  "version": 1,
+  "workspace": {
+    "name": "My ProjectOS Workspace",
+    "root": ".",
+    "scanDepth": 1,
+    "ignore": [".git", "node_modules", "dist", "build", ".projectos"]
+  },
   "database": {
-    "provider": "mongodb",
     "uriEnv": "MONGODB_URI"
   },
-  "ai": {
-    "provider": "codex",
-    "model": null
+  "runtime": {
+    "maxParallelBuilders": 5,
+    "defaultProvider": "codex",
+    "requireTaskApproval": true,
+    "autoVerify": true
   },
-  "execution": {
-    "maxBuilders": 5,
-    "defaultApprovalMode": "manual"
-  },
-  "discovery": {
-    "ignore": [
-      "node_modules",
-      ".git",
-      "dist",
-      "build",
-      ".projectos"
-    ]
+  "morning": {
+    "skipCompletedProjects": true,
+    "generateMissingSpecifications": true,
+    "generateMissingPlans": true,
+    "idempotent": true
   },
   "safety": {
     "allowOutsideWorkspace": false,
-    "allowSourceDeletion": false
+    "allowSourceDeletion": false,
+    "requireVerificationBeforeComplete": true
   }
 }

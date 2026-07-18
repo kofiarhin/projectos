@@ -12,18 +12,14 @@ import { z } from 'zod';
 export const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   MONGODB_URI: z.string().min(1, 'MONGODB_URI is required'),
-  PROJECTOS_WORKSPACE_ROOT: z
-    .string()
-    .min(1, 'PROJECTOS_WORKSPACE_ROOT is required'),
+  PROJECTOS_WORKSPACE_ROOT: z.string().min(1, 'PROJECTOS_WORKSPACE_ROOT is required'),
   PROJECTOS_CONFIG_PATH: z.string().min(1).default('.projectos/workspace.json'),
   // MVP scope caps parallel builders at five (see docs/PRD.md).
   PROJECTOS_MAX_BUILDERS: z.coerce.number().int().positive().max(5).default(5),
   AI_PROVIDER: z.string().min(1).default('codex'),
   AI_MODEL: z.string().optional(),
   AI_API_KEY: z.string().optional(),
-  LOG_LEVEL: z
-    .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
-    .default('info'),
+  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
 });
 
 export type Env = z.infer<typeof envSchema>;

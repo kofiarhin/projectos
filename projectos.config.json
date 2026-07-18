@@ -2,15 +2,12 @@
   "version": 1,
   "workspace": {
     "name": "My ProjectOS Workspace",
-    "root": "${PROJECTOS_WORKSPACE_ROOT}",
+    "root": ".",
     "scanDepth": 1,
-    "ignore": [
-      ".git",
-      "node_modules",
-      "dist",
-      "build",
-      ".projectos"
-    ]
+    "ignore": [".git", "node_modules", "dist", "build", ".projectos"]
+  },
+  "database": {
+    "uri": "mongodb://127.0.0.1:27017/projectos"
   },
   "runtime": {
     "maxParallelBuilders": 5,

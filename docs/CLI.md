@@ -106,6 +106,7 @@ Validates local readiness without starting a server. Checks:
 - Node.js version;
 - MongoDB URI presence;
 - workspace-root configuration;
+- committed project config fallback when environment variables are absent;
 - workspace-root existence;
 - configuration-file path;
 - provider configuration;

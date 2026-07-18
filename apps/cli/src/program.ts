@@ -63,10 +63,9 @@ export function buildProgram(): Command {
   program
     .command('doctor')
     .description('Validate local readiness (no server is started)')
-    .option('--json', 'output the doctor report as JSON')
-    .action((options: { json?: boolean }) => {
+    .action(() => {
       const report = runDoctor();
-      if (options.json) {
+      if (program.opts<{ json?: boolean }>().json) {
         process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
       } else {
         process.stdout.write(`${formatDoctorReport(report)}\n`);

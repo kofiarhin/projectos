@@ -37,9 +37,7 @@ describe('parseEnv', () => {
       expect(error).toBeInstanceOf(EnvValidationError);
       const issues = (error as EnvValidationError).issues;
       expect(issues.some((issue) => issue.includes('MONGODB_URI'))).toBe(true);
-      expect(
-        issues.some((issue) => issue.includes('PROJECTOS_WORKSPACE_ROOT')),
-      ).toBe(true);
+      expect(issues.some((issue) => issue.includes('PROJECTOS_WORKSPACE_ROOT'))).toBe(true);
     }
   });
 });
