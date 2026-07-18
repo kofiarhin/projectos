@@ -2,6 +2,8 @@
 
 Executable: `projectos`
 
+The CLI is the sole required user interface for the MVP. Commands call application services directly in-process.
+
 ## Global Flags
 
 - `--config <path>`
@@ -9,35 +11,38 @@ Executable: `projectos`
 - `--quiet`
 - `--verbose`
 - `--no-color`
+- `--non-interactive`
+
+## Global Behavior
+
+- Default output is human-readable.
+- `--json` emits stable machine-readable results.
+- Missing required input triggers prompts unless `--non-interactive` is set.
+- Long-running commands persist a run record before work begins.
+- Ctrl+C requests graceful cancellation and preserves recoverable state.
 
 ## `projectos init`
 
-Initializes a workspace.
+Initializes or repairs a workspace.
 
 Flags:
 - `--root <path>`
 - `--mongodb-uri <uri>`
 - `--provider <name>`
-- `--non-interactive`
 - `--rescan`
-
-Exit codes:
-- 0 success
-- 2 invalid configuration
-- 3 database unavailable
-- 4 workspace invalid
+- `--skip-generation`
 
 ## `projectos morning`
 
-Runs the morning audit.
+Runs the idempotent morning audit.
 
 Flags:
 - `--project <slug>`
 - `--dry-run`
 - `--force`
-- `--skip-completed`
+- `--approve`
 
-Default behavior is idempotent and skips completed projects.
+Completed projects without active requests are skipped by default.
 
 ## `projectos run`
 
@@ -47,40 +52,65 @@ Flags:
 - `--all`
 - `--task <id>`
 - `--project <slug>`
-- `--max-agents <n>`
+- `--max-agents <1-5>`
 - `--dry-run`
 - `--watch`
 
-Without `--all`, interactive mode asks for confirmation.
+## `projectos request`
+
+Creates or inspects requests.
+
+Subcommands:
+- `create`
+- `list`
+- `show`
+- `approve`
+- `reject`
+- `cancel`
+
+Request types: `idea`, `feature`, `bug`, `refactor`, `maintenance`.
+
+## `projectos status`
+
+Shows workspace, project, task, run, and agent state.
+
+Flags:
+- `--project <slug>`
+- `--tasks`
+- `--agents`
+- `--runs`
+- `--watch`
+- `--compact`
 
 ## `projectos report`
 
 Generates or displays reports.
 
 Flags:
-- `--type daily|workspace|project|audit|run`
+- `--type morning|daily|workspace|project|audit|run`
 - `--project <slug>`
 - `--date <YYYY-MM-DD>`
 - `--output <path>`
 
-## `projectos request`
+## `projectos doctor`
 
-Creates a request.
+Validates local readiness without starting a server.
+
+Checks:
+- configuration file;
+- workspace root access and boundary safety;
+- MongoDB connectivity;
+- provider availability;
+- Node.js and required command-line tools;
+- writable ProjectOS state and report directories.
 
 Flags:
-- `--project <slug>`
-- `--type idea|feature|bug|refactor|maintenance`
-- `--title <text>`
-- `--description <text>`
-- `--priority critical|high|medium|low`
-
-## `projectos status`
-
-Shows workspace summary, active runs, agent states, and task counts.
+- `--fix` for safe configuration repairs only;
+- `--json` for automation.
 
 ## `projectos reset`
 
-Scoped operational reset.
+Resets explicitly selected operational state.
 
 Flags:
 - `--tasks`
@@ -88,10 +118,37 @@ Flags:
 - `--cache`
 - `--failed-runs`
 - `--all-operational`
+- `--project <slug>`
 - `--confirm`
 
-Must never delete project source.
+Reset never deletes project source code.
 
-## Output Rules
+## Exit Codes
 
-Human mode uses readable tables and summaries. `--json` returns stable machine-readable JSON. Errors go to stderr.
+- `0` success
+- `1` unexpected failure
+- `2` invalid arguments or configuration
+- `3` database unavailable
+- `4` workspace invalid or unsafe
+- `5` provider unavailable
+- `6` domain state conflict
+- `7` verification failed
+- `8` operation cancelled
+- `9` human review required
+
+## Output Contract
+
+Every JSON result contains:
+
+```json
+{
+  "command": "morning",
+  "status": "success",
+  "runId": "optional",
+  "summary": "string",
+  "data": {},
+  "warnings": [],
+  "errors": [],
+  "exitCode": 0
+}
+```
