@@ -1,6 +1,14 @@
 # ProjectOS API Specification
 
-Base path: `/api/v1`
+> **Status: Not part of the CLI-first MVP.**
+>
+> ProjectOS is CLI-first, local, and in-process. The MVP has no HTTP server,
+> REST API, GraphQL API, or CORS layer. The CLI calls TypeScript application
+> services directly. This document is retained only as design reference for a
+> possible future networked interface. The resource names below map to
+> in-process service operations, not HTTP endpoints, in the current MVP.
+
+Base path (future networked interface only): `/api/v1`
 
 ## Response Envelope
 

@@ -2,6 +2,10 @@
 
 Executable: `projectos`
 
+The CLI is the single entry point for ProjectOS. It runs locally and in-process
+against MongoDB, the local filesystem, and provider adapters. No server is
+started by any command.
+
 ## Global Flags
 
 - `--config <path>`
@@ -9,6 +13,8 @@ Executable: `projectos`
 - `--quiet`
 - `--verbose`
 - `--no-color`
+- `-v, --version`
+- `-h, --help`
 
 ## `projectos init`
 
@@ -90,7 +96,34 @@ Flags:
 - `--all-operational`
 - `--confirm`
 
-Must never delete project source.
+Must never delete project source. Reset and recovery operate only on
+operational data in MongoDB and approved local artifacts.
+
+## `projectos doctor`
+
+Validates local readiness without starting a server. Checks:
+
+- Node.js version;
+- MongoDB URI presence;
+- workspace-root configuration;
+- workspace-root existence;
+- configuration-file path;
+- provider configuration;
+- maximum builders does not exceed five;
+- ability to load core packages;
+- basic filesystem access inside the workspace root.
+
+Flags:
+- `--json`
+
+Exit codes:
+- 0 all required checks pass
+- 1 one or more required checks fail
+
+## `projectos --help` / `projectos --version`
+
+`--help` prints the command surface and flags. `--version` prints the CLI
+version. Neither starts a server.
 
 ## Output Rules
 

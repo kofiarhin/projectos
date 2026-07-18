@@ -3,14 +3,14 @@ import { z } from 'zod';
 /**
  * Canonical environment schema for ProjectOS.
  *
- * Mirrors the variables documented in the repository `.env.example`. Defaults
- * are chosen so a developer can run the stack locally with minimal setup while
- * still surfacing actionable errors for the values that genuinely must be set.
+ * ProjectOS is a CLI-first, local, in-process application: there is no HTTP
+ * server, so no port or CORS configuration exists. This schema mirrors the
+ * variables documented in the repository `.env.example`. Defaults are chosen so
+ * a developer can run the CLI locally with minimal setup while still surfacing
+ * actionable errors for the values that genuinely must be set.
  */
 export const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  PORT: z.coerce.number().int().positive().default(4000),
-  DASHBOARD_PORT: z.coerce.number().int().positive().default(5173),
   MONGODB_URI: z.string().min(1, 'MONGODB_URI is required'),
   PROJECTOS_WORKSPACE_ROOT: z
     .string()
@@ -24,7 +24,6 @@ export const envSchema = z.object({
   LOG_LEVEL: z
     .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
     .default('info'),
-  CORS_ORIGIN: z.string().min(1).default('http://localhost:5173'),
 });
 
 export type Env = z.infer<typeof envSchema>;

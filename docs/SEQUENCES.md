@@ -6,7 +6,7 @@
 2. CLI validates workspace root.
 3. Workspace engine scans child folders.
 4. User reviews detected projects.
-5. API validates MongoDB and provider configuration.
+5. CLI validates MongoDB and provider configuration in-process.
 6. Workspace record is created.
 7. Projects are registered.
 8. Missing specifications and plans are queued.
@@ -44,7 +44,7 @@
 
 ## New Request
 
-1. User creates request in dashboard or CLI.
+1. User creates request via `projectos request`.
 2. Request is submitted.
 3. Human approves request.
 4. Project reactivates if completed.

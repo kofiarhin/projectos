@@ -11,11 +11,16 @@ This directory contains the canonical source-of-truth documentation for ProjectO
 | 3 | `IMPLEMENTATION_PLAN.md` | Delivery phases, dependencies, milestones, acceptance gates |
 | 4 | `AGENT_CONTRACT.md` | Portable role contracts for orchestrators, builders, verifiers, and reporters |
 | 5 | `DATABASE.md` | MongoDB collections, fields, indexes, retention, and consistency rules |
-| 6 | `API.md` | REST API resources, payloads, responses, validation, and errors |
-| 7 | `CLI.md` | Command behavior, flags, prompts, output, and exit codes |
-| 8 | `UI.md` | Single-workspace Mission Control UX, screens, states, and interactions |
-| 9 | `SEQUENCES.md` | End-to-end workflows and interaction sequences |
-| 10 | `STATES.md` | Lifecycle state machines and allowed transitions |
+| 6 | `CLI.md` | Command behavior, flags, prompts, output, and exit codes |
+| 7 | `SEQUENCES.md` | End-to-end workflows and interaction sequences |
+| 8 | `STATES.md` | Lifecycle state machines and allowed transitions |
+
+### Retained, non-MVP references
+
+| File | Status |
+|---|---|
+| `API.md` | HTTP/REST API design retained for a possible future phase. Not built in the CLI-first MVP. |
+| `UI.md` | Browser dashboard design retained for a possible future phase. Not built in the CLI-first MVP. |
 
 ## Repository-Level Files
 
@@ -38,6 +43,7 @@ Any change affecting architecture must update:
 
 - `ARCHITECTURE.md`
 - the impacted subsystem specification
+- `CLI.md` when command behavior changes
 - `SEQUENCES.md` or `STATES.md` when behavior changes
 
 ## MVP Documentation Baseline
@@ -47,9 +53,9 @@ The MVP assumes:
 - one local workspace
 - multiple projects inside the workspace
 - MongoDB for operational state
-- a React/Vite Mission Control dashboard
-- Node.js/Express API
-- CLI-driven initialization and daily operation
+- a CLI-first, local, in-process runtime (no HTTP server, no browser dashboard)
+- the `projectos` CLI as the single entry point
+- reusable TypeScript application services under `packages/*`
 - up to five parallel builders
-- human review through the dashboard
+- human review through the CLI
 - no learning, embeddings, cloud execution, or multi-user permissions

@@ -2,7 +2,7 @@
   "name": "projectos",
   "version": "0.0.0",
   "private": true,
-  "description": "ProjectOS — Autonomous Development Operating System (monorepo root)",
+  "description": "ProjectOS — CLI-first Autonomous Development Operating System (monorepo root)",
   "license": "UNLICENSED",
   "engines": {
     "node": ">=20"
@@ -19,26 +19,22 @@
     "packages/context",
     "packages/providers",
     "packages/reporting",
-    "apps/api",
-    "apps/cli",
-    "apps/dashboard"
+    "apps/cli"
   ],
   "scripts": {
-    "dev": "concurrently -n api,dashboard -c blue,green \"npm:dev:api\" \"npm:dev:dashboard\"",
-    "dev:api": "npm run dev --workspace apps/api",
-    "dev:dashboard": "npm run dev --workspace apps/dashboard",
     "build": "npm run build --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "npm run test --workspaces --if-present"
+    "test": "npm run test --workspaces --if-present",
+    "projectos": "tsx apps/cli/src/index.ts",
+    "projectos:doctor": "tsx apps/cli/src/index.ts doctor"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
     "@types/node": "^22.10.5",
-    "concurrently": "^9.1.2",
     "eslint": "^9.17.0",
     "globals": "^15.14.0",
     "prettier": "^3.4.2",

@@ -1,5 +1,11 @@
 # ProjectOS UI Specification
 
+> **Status: Not part of the CLI-first MVP.**
+>
+> The MVP user interface is the `projectos` CLI (see `docs/CLI.md`). There is no
+> browser dashboard, React app, or Vite build in the MVP. This document is
+> retained as design reference for a possible future Mission Control dashboard.
+
 ## 1. Product Experience
 
 The dashboard is a single-workspace Mission Control. It must answer:

@@ -13,13 +13,14 @@
 
 ### Integration Tests
 - MongoDB repositories;
-- API endpoints;
+- CLI command handlers invoking application services;
 - task claiming;
 - heartbeat expiry;
 - activity creation;
 - spec and plan revision conflicts.
 
 ### End-to-End Tests
+- CLI-driven, in-process; no running server is required for any test;
 - initialize workspace;
 - add project idea;
 - generate spec and plan;
@@ -33,11 +34,11 @@
 
 ## Tooling
 
-- Vitest for dashboard and shared frontend packages.
-- Jest for backend and CLI.
-- Supertest for API.
+- Vitest for shared TypeScript packages.
+- Jest for the CLI and application-service packages.
 - MongoDB test containers or isolated test database.
-- Playwright for dashboard E2E.
+- No HTTP test client or browser test runner is required; the runtime is
+  CLI-first and in-process.
 
 ## Release Gates
 
@@ -48,7 +49,7 @@
 - duplicate morning test passes;
 - stale-context test passes;
 - parallel claim test passes;
-- API contract snapshots are current.
+- CLI output contracts (human and `--json`) are current.
 
 ## Test Data
 

@@ -19,13 +19,13 @@ Do not invent requirements that conflict with these files.
 ## General Rules
 
 - Work only on the assigned task.
-- Keep API logic out of React components.
-- Use React + Vite + Tailwind for the dashboard.
-- Use TanStack Query for server state.
-- Use Redux Toolkit only for genuine global client state.
-- Use Node.js + Express + MongoDB + Mongoose for the backend.
-- Use Zod for request and configuration validation.
-- Use Vitest for frontend tests and Jest for backend tests.
+- ProjectOS is CLI-first: the `projectos` CLI is the only application entry point.
+- All runtime behavior is local and in-process. Do not add an HTTP server, REST/GraphQL API, CORS layer, browser dashboard, or Vite app to the MVP.
+- Implement reusable logic as TypeScript application services in `packages/*` and call them directly from CLI command handlers in `apps/cli`.
+- Use Node.js + MongoDB (Mongoose in later phases) for persistence.
+- Keep provider-specific behavior behind adapters in `packages/providers`.
+- Use Zod for command-input and configuration validation.
+- Use Jest for CLI tests and Vitest for shared package tests.
 - Do not modify user projects outside the active task scope.
 - Never delete source code as part of reset or recovery operations.
 - Every state mutation must produce an activity event.

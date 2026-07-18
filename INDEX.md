@@ -24,9 +24,9 @@ When documents conflict, use the authority order above and raise the conflict fo
 | `docs/IMPLEMENTATION_PLAN.md` | Phased delivery plan with dependencies and exit criteria | Engineering, project management |
 | `docs/AGENT_CONTRACT.md` | Orchestrator, builder, verifier, and reporter contracts | AI agents, engineering |
 | `docs/DATABASE.md` | MongoDB collections, schemas, indexes, and lifecycle rules | Backend engineering |
-| `docs/API.md` | REST API and event contracts | Frontend and backend engineering |
 | `docs/CLI.md` | CLI commands, flags, prompts, outputs, and exit codes | CLI engineering, users |
-| `docs/UI.md` | Dashboard information architecture, screens, components, and states | Design, frontend engineering |
+| `docs/API.md` | Retained (non-MVP) HTTP API design — not built in the CLI-first MVP | Future reference |
+| `docs/UI.md` | Retained (non-MVP) browser dashboard design — not built in the CLI-first MVP | Future reference |
 | `docs/SEQUENCES.md` | End-to-end workflow sequences | Engineering, QA |
 | `docs/STATES.md` | State machines and transition rules | Engineering, QA |
 | `docs/TESTING.md` | Test strategy, test pyramid, and release gates | Engineering, QA |
@@ -34,8 +34,8 @@ When documents conflict, use the authority order above and raise the conflict fo
 
 ## Product Summary
 
-ProjectOS is a single-workspace autonomous development operating system that manages multiple software projects through a repeatable lifecycle:
+ProjectOS is a CLI-first, single-workspace autonomous development operating system that manages multiple software projects through a repeatable lifecycle:
 
 Idea → Discovery → Specification → Planning → Tasks → Execution → Verification → Completion → Maintenance
 
-The human provides intent and oversight. ProjectOS orchestrates. Builder agents implement. MongoDB stores operational state. The filesystem stores source code.
+The human provides intent and oversight through the `projectos` CLI. ProjectOS orchestrates in-process. Builder agents implement. MongoDB stores operational state. The filesystem stores source code. There is no HTTP server or browser dashboard in the MVP.

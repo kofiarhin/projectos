@@ -12,16 +12,15 @@ describe('parseEnv', () => {
     const env = parseEnv(validBase);
 
     expect(env.NODE_ENV).toBe('development');
-    expect(env.PORT).toBe(4000);
-    expect(env.DASHBOARD_PORT).toBe(5173);
     expect(env.AI_PROVIDER).toBe('codex');
+    expect(env.PROJECTOS_CONFIG_PATH).toBe('.projectos/workspace.json');
     expect(env.PROJECTOS_MAX_BUILDERS).toBe(5);
     expect(env.LOG_LEVEL).toBe('info');
   });
 
   it('coerces numeric strings', () => {
-    const env = parseEnv({ ...validBase, PORT: '5000' });
-    expect(env.PORT).toBe(5000);
+    const env = parseEnv({ ...validBase, PROJECTOS_MAX_BUILDERS: '3' });
+    expect(env.PROJECTOS_MAX_BUILDERS).toBe(3);
   });
 
   it('rejects more than five parallel builders', () => {

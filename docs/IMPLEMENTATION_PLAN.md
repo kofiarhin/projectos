@@ -6,15 +6,22 @@ Build the MVP in vertical increments. Each phase must leave the repository in a 
 
 ## Phase 0 — Repository Foundation
 
+ProjectOS is CLI-first. Phase 0 establishes the monorepo, the CLI entry point,
+and reusable TypeScript application-service packages. There is no API app or
+dashboard app.
+
 ### Deliverables
 - npm workspace monorepo
-- dashboard, API, and CLI apps
+- `apps/cli` as the single application entry point
+- reusable service packages under `packages/*`
 - shared TypeScript configuration
 - linting, formatting, testing, and environment validation
+- `projectos --help`, `projectos --version`, and `projectos doctor`
 - CI checks
 
 ### Exit Criteria
-- all apps start locally;
+- the CLI runs locally (`--help`, `--version`, `doctor`);
+- `doctor` validates local readiness without starting a server;
 - baseline tests pass;
 - environment errors are actionable.
 
@@ -47,19 +54,21 @@ Build the MVP in vertical increments. Each phase must leave the repository in a 
 - rerunning init is safe;
 - paths outside root are rejected.
 
-## Phase 3 — Dashboard Shell
+## Phase 3 — CLI Command Surface
 
 ### Deliverables
-- app layout
-- sidebar navigation
-- routing
-- TanStack Query client
-- global error handling
-- loading and empty states
+- command handlers for the documented CLI surface
+- global flags (`--config`, `--json`, `--quiet`, `--verbose`, `--no-color`)
+- consistent human-readable and `--json` output
+- global error handling and actionable exit codes
 
 ### Exit Criteria
-- all MVP routes render;
-- UI uses mocked or real API consistently.
+- all MVP commands are wired to services;
+- output is consistent across commands.
+
+> Post-MVP: A browser dashboard (app layout, navigation, routing, live views) is
+> deferred beyond the CLI-first MVP. See `docs/UI.md` for the retained future
+> design.
 
 ## Phase 4 — Projects and Requests
 
@@ -155,24 +164,20 @@ Build the MVP in vertical increments. Each phase must leave the repository in a 
 - verified tasks become completed;
 - evidence is stored.
 
-## Phase 11 — Mission Control Dashboard
+## Phase 11 — Status and Insight (CLI)
 
 ### Deliverables
-- overview
-- tasks
-- requests
-- agents
-- reports
-- activity
-- settings
-- project details
-- task details
-- agent details
+- `projectos status` workspace summary
+- task, request, agent, and run summaries in the CLI
+- readable and `--json` output for each view
 
 ### Exit Criteria
-- user can understand workspace state in thirty seconds;
-- controls mutate backend state correctly;
-- live updates appear within five seconds.
+- user can understand workspace state from the CLI in thirty seconds;
+- CLI commands mutate operational state correctly.
+
+> Post-MVP: A Mission Control browser dashboard (overview, tasks, requests,
+> agents, reports, activity, settings, and detail screens) is deferred beyond
+> the CLI-first MVP. The design is retained in `docs/UI.md`.
 
 ## Phase 12 — Reporting and Recovery
 
@@ -207,9 +212,8 @@ Build the MVP in vertical increments. Each phase must leave the repository in a 
 
 Release only when:
 
-- init, morning, run, report, request, status, and reset work;
+- init, morning, run, report, request, status, reset, and doctor work;
 - all source-of-truth documents match implementation;
-- dashboard covers all MVP screens;
 - parallel execution is safe;
 - activity history is complete;
 - interrupted execution is recoverable;

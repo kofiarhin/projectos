@@ -1,6 +1,8 @@
 # ProjectOS
 
-ProjectOS is an Autonomous Development Operating System for managing multiple software projects inside one local workspace.
+ProjectOS is a CLI-first Autonomous Development Operating System for managing multiple software projects inside one local workspace.
+
+It runs entirely locally and in-process: the CLI invokes TypeScript application services directly against MongoDB, the local filesystem, and provider adapters. There is no HTTP server, REST API, or browser dashboard in the MVP.
 
 ## Core Workflow
 
@@ -12,6 +14,15 @@ projectos report
 projectos request
 projectos status
 projectos reset
+```
+
+Operational commands:
+
+```bash
+projectos --help
+projectos --version
+projectos doctor          # validate local readiness (no server is started)
+projectos doctor --json   # machine-readable readiness report
 ```
 
 ## Product Model
@@ -36,4 +47,4 @@ Supporting specs cover agents, database, API, CLI, UI, sequences, states, testin
 
 ## MVP Scope
 
-The MVP supports one managed workspace, multiple local projects, one orchestrator, a pool of builder agents, a verification loop, MongoDB-backed state, a CLI, and a single-workspace Mission Control dashboard.
+The MVP supports one managed workspace, multiple local projects, one orchestrator, a pool of builder agents, a verification loop, MongoDB-backed operational state, and a local CLI as the single entry point. A browser dashboard is out of scope for the MVP and deferred to a later phase.

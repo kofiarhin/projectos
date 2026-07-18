@@ -10,12 +10,11 @@ ProjectOS executes code-generating agents against local repositories. The worksp
 - Reject `..` traversal and symlink escape.
 - Never send secrets, `.env` content, or credential files to providers.
 - Maintain configurable ignore patterns.
-- Sanitize dashboard and CLI input before shell use.
+- Sanitize CLI input before shell use.
 - Prefer allowlisted commands for verification.
 - Record actor and reason for privileged operations.
 - Encrypt sensitive settings where stored.
-- Bind local API to loopback by default.
-- Require explicit configuration before remote exposure.
+- Run locally and in-process; do not open network listeners in the MVP.
 - Redact provider tokens and connection strings from logs.
 - Keep source deletion disabled for reset operations.
 

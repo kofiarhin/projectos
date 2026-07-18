@@ -15,6 +15,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@projectos/shared": "*",
     "commander": "^12.1.0"
   },
   "devDependencies": {

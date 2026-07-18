@@ -6,16 +6,19 @@ Provide a modular, local-first platform that separates orchestration, execution,
 
 ## 2. System Context
 
+ProjectOS is CLI-first and runs entirely locally and in-process. The CLI invokes
+TypeScript application services directly. There is no HTTP server, REST API, or
+browser dashboard in the MVP.
+
 ```text
 User
- ├─ CLI
- └─ Dashboard
+ └─ ProjectOS CLI
        │
        ▼
-Express API
+Command Handlers
        │
        ▼
-ProjectOS Core
+TypeScript Application Services (packages/*)
  ├─ Workspace Engine
  ├─ Request Engine
  ├─ Specification Engine
@@ -38,8 +41,6 @@ ProjectOS Core
 ```text
 projectos/
 ├── apps/
-│   ├── dashboard/
-│   ├── api/
 │   └── cli/
 ├── packages/
 │   ├── core/
@@ -176,7 +177,10 @@ The system must not create duplicate tasks for the same fingerprint and task int
 
 ## 9. Eventing
 
-MVP uses MongoDB plus API polling or Server-Sent Events. Redis is not required.
+MVP persists events to MongoDB as append-only activity records. The CLI reads
+them directly (for example via `projectos status` and `projectos report`). There
+is no event-streaming server, polling API, or Server-Sent Events in the MVP.
+Redis is not required.
 
 Events include:
 
@@ -217,16 +221,16 @@ Errors that require human judgment move the affected entity to `needs_review`.
 - Redact secrets from logs and agent prompts.
 - Restrict reset to operational data.
 - Log all destructive or privileged actions.
-- Never execute arbitrary shell input directly from dashboard fields.
+- Never execute arbitrary shell input directly from CLI arguments.
 
 ## 12. Deployment Model
 
-MVP runs locally:
+MVP runs locally with no persistent server:
 
-- dashboard on Vite dev server or static build;
-- Express API on localhost;
-- local CLI;
+- local CLI as the single entry point;
+- TypeScript application services invoked in-process;
 - local or remote MongoDB;
 - locally installed AI CLI/provider.
 
-The API owns all database mutation. The dashboard and CLI are clients.
+The CLI owns all database mutation directly through the application services.
+No process listens on a network port during normal operation.

@@ -69,14 +69,15 @@ Secondary users are small technical teams, but multi-user permissions are out of
 - Up to five parallel builder agents.
 - Verification and retry workflow.
 - MongoDB-backed operational state.
-- CLI commands.
-- Mission Control dashboard.
+- CLI commands as the single entry point.
 - Requests for ideas, features, bugs, refactors, and maintenance.
 - Runs, reports, activity history, and agent status.
 - Safe reset and kill-switch controls.
 
 ### Excluded
 
+- Browser dashboard (deferred to a post-MVP phase).
+- HTTP/REST API or persistent application server.
 - Multi-user permissions.
 - Cloud execution.
 - Automated deployment.
@@ -135,7 +136,7 @@ The command must be idempotent for the same workspace state.
 
 ### FR-8 Human Controls
 
-The dashboard must support approving, editing, pausing, resuming, rejecting, reprioritizing, retrying, and cancelling work.
+The CLI must support approving, editing, pausing, resuming, rejecting, reprioritizing, retrying, and cancelling work.
 
 ### FR-9 Requests
 
@@ -161,21 +162,24 @@ The system must show agent identity, provider, status, current task, current pro
 
 Reset operations must be scoped and must never delete project source code. A workspace-wide pause must stop new assignments while allowing state to remain inspectable.
 
-## 10. Dashboard Screens
+## 10. CLI Surface
 
-1. Workspace Setup Wizard
-2. Workspace Overview
-3. Projects
-4. Project Details
-5. Requests
-6. Tasks
-7. Task Details
-8. Agents
-9. Agent Details
-10. Reports
-11. Report Details
-12. Activity
-13. Settings
+The CLI is the MVP interface. It exposes:
+
+1. `projectos init`
+2. `projectos morning`
+3. `projectos run`
+4. `projectos report`
+5. `projectos request`
+6. `projectos status`
+7. `projectos reset`
+8. `projectos doctor`
+9. `projectos --help`
+10. `projectos --version`
+
+> Post-MVP: A browser dashboard covering workspace overview, projects, requests,
+> tasks, agents, reports, activity, and settings is deferred beyond the MVP. The
+> retained design lives in `docs/UI.md`.
 
 ## 11. Non-Functional Requirements
 
@@ -183,10 +187,10 @@ Reset operations must be scoped and must never delete project source code. A wor
 - State changes must be auditable.
 - Paths must be portable using workspace-root-relative paths.
 - The system must never execute outside the registered workspace root.
-- The dashboard must expose current state within five seconds of a backend update.
-- Common dashboard queries should return within one second under expected MVP load.
+- The CLI must reflect current operational state read directly from MongoDB.
+- Common CLI queries should return within one second under expected MVP load.
 - System modules must be provider-agnostic.
-- All state transitions must be validated server-side.
+- All state transitions must be validated in the application services.
 
 ## 12. Success Criteria
 
@@ -195,10 +199,10 @@ The MVP is successful when a user can:
 - initialize a workspace in under ten minutes;
 - register existing and new projects;
 - run a morning audit without duplicate tasks;
-- approve tasks from the dashboard;
+- approve tasks from the CLI;
 - execute several non-conflicting tasks through parallel builders;
 - verify results and recover failures;
-- understand portfolio health within thirty seconds of opening the dashboard;
+- understand portfolio health within thirty seconds using `projectos status`;
 - continue work across multiple days without losing state.
 
 ## 13. Risks
