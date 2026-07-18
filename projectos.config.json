@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "workspace": {
+    "name": "My ProjectOS Workspace",
+    "root": "${PROJECTOS_WORKSPACE_ROOT}",
+    "scanDepth": 1,
+    "ignore": [
+      ".git",
+      "node_modules",
+      "dist",
+      "build",
+      ".projectos"
+    ]
+  },
+  "runtime": {
+    "maxParallelBuilders": 5,
+    "defaultProvider": "codex",
+    "requireTaskApproval": true,
+    "autoVerify": true
+  },
+  "morning": {
+    "skipCompletedProjects": true,
+    "generateMissingSpecifications": true,
+    "generateMissingPlans": true,
+    "idempotent": true
+  },
+  "safety": {
+    "allowOutsideWorkspace": false,
+    "allowSourceDeletion": false,
+    "requireVerificationBeforeComplete": true
+  }
+}

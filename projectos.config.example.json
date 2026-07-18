@@ -1,0 +1,29 @@
+{
+  "workspaceName": "My Workspace",
+  "workspaceRoot": "/absolute/path/to/projects",
+  "database": {
+    "provider": "mongodb",
+    "uriEnv": "MONGODB_URI"
+  },
+  "ai": {
+    "provider": "codex",
+    "model": null
+  },
+  "execution": {
+    "maxBuilders": 5,
+    "defaultApprovalMode": "manual"
+  },
+  "discovery": {
+    "ignore": [
+      "node_modules",
+      ".git",
+      "dist",
+      "build",
+      ".projectos"
+    ]
+  },
+  "safety": {
+    "allowOutsideWorkspace": false,
+    "allowSourceDeletion": false
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "baseUrl": ".",
+    "paths": {
+      "@projectos/shared": ["packages/shared/src/index.ts"],
+      "@projectos/core": ["packages/core/src/index.ts"],
+      "@projectos/database": ["packages/database/src/index.ts"],
+      "@projectos/workspace": ["packages/workspace/src/index.ts"],
+      "@projectos/orchestrator": ["packages/orchestrator/src/index.ts"],
+      "@projectos/scheduler": ["packages/scheduler/src/index.ts"],
+      "@projectos/builders": ["packages/builders/src/index.ts"],
+      "@projectos/verification": ["packages/verification/src/index.ts"],
+      "@projectos/context": ["packages/context/src/index.ts"],
+      "@projectos/providers": ["packages/providers/src/index.ts"],
+      "@projectos/reporting": ["packages/reporting/src/index.ts"]
+    }
+  }
+}
