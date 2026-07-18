@@ -1,107 +1,88 @@
-# ProjectOS UI Specification
+# ProjectOS Terminal UX Specification
 
 ## 1. Product Experience
 
-The dashboard is a single-workspace Mission Control. It must answer:
+ProjectOS MVP uses the terminal as Mission Control. There is no browser dashboard.
+
+The CLI must make it easy to answer:
 
 - What is happening now?
-- What needs attention?
-- Which projects are progressing?
-- Which agents are active?
+- What needs approval or review?
+- Which projects are progressing or blocked?
+- Which agents are running?
 - What changed today?
 
-## 2. Navigation
+## 2. Interaction Modes
 
-- Overview
-- Projects
-- Tasks
-- Requests
-- Agents
-- Reports
-- Activity
-- Settings
+### Command Mode
 
-## 3. Screens
+Explicit commands for scripts, repeatability, and automation.
 
-### Workspace Setup Wizard
-Steps: Welcome, workspace root, detected projects, database, AI provider, generated specs, generated plans, review, finish.
+### Interactive Mode
 
-### Workspace Overview
-Widgets:
-- workspace health;
-- project counts;
-- today's task counts;
-- active agents;
-- attention queue;
-- project progress cards;
-- timeline;
-- latest report.
+Prompts, confirmations, selections, and external-editor workflows when required arguments are absent.
+
+### JSON Mode
+
+Stable output for shell scripts and future integrations.
+
+### Watch Mode
+
+Periodic terminal refresh for runs, tasks, and agents. Watch mode reads persisted state and does not require a server.
+
+## 3. Primary Views
+
+### Workspace Status
+
+Displays workspace health, project counts, task queues, active runs, active agents, approvals, blockers, and latest report.
 
 ### Projects
-Card and list views with phase, status, progress, next action, last audit, and attention state.
 
-### Project Details
-Tabs:
-- Overview
-- Specification
-- Plan
-- Tasks
-- Requests
-- Reports
-- Activity
-- Settings
-
-### Requests
-Filterable request list and create/edit flow.
+List and detail output includes phase, status, progress, active request, approved spec and plan versions, open tasks, blockers, and last audit.
 
 ### Tasks
-Queue-based view grouped by ready, running, needs review, blocked, and completed.
 
-### Task Details
-Description, acceptance criteria, dependencies, project, agent, context revision, logs, changed files, verification evidence, history, and controls.
+Queue views include proposed, pending approval, ready, running, blocked, needs review, failed, and completed.
+
+Task detail includes description, acceptance criteria, dependencies, priority, assignment, attempts, changed files, commands, tests, verification evidence, and activity history.
+
+### Requests
+
+Create, list, inspect, approve, reject, and cancel workflows.
 
 ### Agents
-Live status cards showing provider, role, task, project, duration, and heartbeat.
 
-### Agent Details
-Capabilities, current assignment, execution logs, recent tasks, errors, and pause/resume controls.
+Displays role, provider, status, current project, current task, heartbeat, duration, and recent outcomes.
 
 ### Reports
-Report list with filters and readable report detail view.
+
+Readable terminal summaries with optional full Markdown export.
 
 ### Activity
-Chronological audit feed with filters by project, task, agent, run, and event type.
 
-### Settings
-Workspace path, MongoDB connection status, provider configuration, concurrency, approval mode, ignored folders, notifications, and safety settings.
+Chronological audit output with filters by project, task, agent, run, event type, and date.
 
-## 4. Shared States
+### Settings and Doctor
 
-Every screen must define:
+Configuration is edited through `projectos init`, config files, and explicit commands. `projectos doctor` explains invalid or missing configuration and suggests safe fixes.
 
-- loading;
-- empty;
-- partial data;
-- stale data;
-- error;
-- permission/safety restriction;
-- paused workspace.
+## 4. Presentation Rules
 
-## 5. Interaction Rules
+- Use tables for compact lists and sections for details.
+- Do not rely on color alone; always include status text or symbols.
+- Respect `NO_COLOR` and `--no-color`.
+- Avoid animation when output is redirected.
+- Progress indicators must not corrupt logs or JSON output.
+- Destructive actions require confirmation unless an explicit non-interactive confirmation flag is present.
+- Errors must include the failed operation, cause, and next action.
 
-- Destructive operations require confirmation.
-- Manual edits display unsaved and stale-revision warnings.
-- Live agent state updates without full-page refresh.
-- Important failures appear in an attention queue.
-- Completed projects remain visible but quiet.
-- Status color is never the only indicator; always include labels or icons.
+## 5. External Editing
 
-## 6. Frontend Architecture
+Long specifications and plans may be written to temporary Markdown files and opened with `$EDITOR`. Saving creates a new revision; approval remains a separate command.
 
-- React + latest Vite
-- Tailwind CSS
-- TanStack Query for server state
-- React Router
-- Zod for client-side form validation
-- Redux Toolkit only when cross-route local state genuinely requires it
-- API calls live in service modules, never components
+## 6. Accessibility and Automation
+
+- All functionality must be keyboard-driven.
+- Human output must remain readable in common terminals.
+- JSON mode must contain no decorative output.
+- Exit codes must match `docs/CLI.md`.

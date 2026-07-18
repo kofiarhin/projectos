@@ -2,44 +2,57 @@
 
 ## Purpose
 
-This file defines repository-wide operating rules for any AI coding agent working on ProjectOS.
+This file defines repository-wide operating rules for AI agents working on ProjectOS.
 
 ## Source of Truth
 
-Read these files before implementation:
+Read before implementation:
 
-1. `docs/PRD.md`
-2. `docs/ARCHITECTURE.md`
-3. `docs/IMPLEMENTATION_PLAN.md`
-4. `docs/AGENT_CONTRACT.md`
-5. The subsystem document relevant to the task
+1. `INDEX.md`
+2. `docs/PRD.md`
+3. `docs/ARCHITECTURE.md`
+4. `docs/IMPLEMENTATION_PLAN.md`
+5. `docs/AGENT_CONTRACT.md`
+6. Relevant subsystem specifications
 
 Do not invent requirements that conflict with these files.
 
-## General Rules
+## Architecture Rules
 
+- ProjectOS MVP is a CLI-first local application.
+- Do not add Express, REST endpoints, CORS, browser-server communication, or a browser dashboard.
+- CLI commands invoke application services directly in-process.
+- Keep command parsing thin; business logic belongs in reusable packages.
+- MongoDB is the operational source of truth.
+- The filesystem is the source-code source of truth.
+- Keep provider-specific behavior behind adapters.
+- Codex CLI is the initial provider inspiration, not a hard-coded domain dependency.
+
+## Implementation Rules
+
+- Work one implementation phase at a time.
+- Do not start the next phase until exit criteria are verified.
 - Work only on the assigned task.
-- Keep API logic out of React components.
-- Use React + Vite + Tailwind for the dashboard.
-- Use TanStack Query for server state.
-- Use Redux Toolkit only for genuine global client state.
-- Use Node.js + Express + MongoDB + Mongoose for the backend.
-- Use Zod for request and configuration validation.
-- Use Vitest for frontend tests and Jest for backend tests.
-- Do not modify user projects outside the active task scope.
-- Never delete source code as part of reset or recovery operations.
-- Every state mutation must produce an activity event.
-- All commands must be idempotent where specified.
-- Always run relevant tests before marking a task complete.
-- Update documentation when behavior or contracts change.
+- Use TypeScript throughout.
+- Use Node.js, MongoDB, Mongoose, Zod, and Pino where applicable.
+- Use Jest for CLI, service, persistence, and workflow tests.
+- Never operate outside the registered workspace root.
+- Never delete user source code during reset or recovery.
+- Every meaningful state mutation must create an activity record.
+- Preserve idempotency for initialization and morning audit workflows.
+- Require verification evidence before completion.
+- Update affected documentation whenever contracts or behavior change.
 
 ## Completion Output
 
-Every task completion must include:
+Every completed task or phase must include:
 
-- Summary of changes
-- Files changed
-- Tests run and results
-- Risks or limitations
-- Follow-up work
-- Final task status
+- summary;
+- files changed;
+- commands run;
+- lint result;
+- type-check result;
+- test result;
+- build result;
+- unresolved issues;
+- confirmation that the next phase was not started.

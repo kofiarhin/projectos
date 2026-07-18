@@ -1,113 +1,137 @@
-# ProjectOS API Specification
+# ProjectOS Internal Application-Service Contracts
 
-Base path: `/api/v1`
+## Status
 
-## Response Envelope
+ProjectOS has no HTTP, REST, GraphQL, WebSocket, or Server-Sent Events API in the MVP.
 
-Success:
+This file retains the canonical name `API.md` for repository compatibility, but defines the typed in-process service boundary used by CLI command handlers.
 
-```json
-{ "data": {}, "meta": {} }
-```
+## Contract Principles
 
-Error:
+- CLI parsing and rendering stay outside domain services.
+- Services accept validated typed input and return typed results.
+- Services do not write directly to stdout or stderr.
+- Every mutation validates state transitions and records activity.
+- MongoDB repositories remain behind service interfaces.
+- Provider-specific behavior remains behind provider adapters.
 
-```json
-{
-  "error": {
-    "code": "TASK_NOT_READY",
-    "message": "Task is not ready for execution",
-    "details": {}
-  }
+## Result Envelope
+
+```ts
+interface ServiceResult<T> {
+  data: T;
+  warnings: ServiceWarning[];
+  activityIds: string[];
 }
 ```
 
-## Workspace
+Typed errors include a stable code, message, details, retryability, and recommended exit code.
 
-- `GET /workspace`
-- `POST /workspace/initialize`
-- `POST /workspace/rescan`
-- `POST /workspace/pause`
-- `POST /workspace/resume`
-- `POST /workspace/reset`
-- `GET /workspace/status`
+## Service Groups
 
-## Projects
+### WorkspaceService
 
-- `GET /projects`
-- `POST /projects`
-- `GET /projects/:projectId`
-- `PATCH /projects/:projectId`
-- `POST /projects/:projectId/pause`
-- `POST /projects/:projectId/resume`
-- `POST /projects/:projectId/archive`
-- `POST /projects/:projectId/audit`
+- initialize
+- scan
+- repair
+- getStatus
+- pause
+- resume
+- resetOperationalState
+- doctor
 
-## Specifications
+### ProjectService
 
-- `GET /projects/:projectId/specifications`
-- `POST /projects/:projectId/specifications/generate`
-- `POST /projects/:projectId/specifications`
-- `PATCH /specifications/:specificationId`
-- `POST /specifications/:specificationId/approve`
+- list
+- get
+- create
+- update
+- pause
+- resume
+- archive
+- reactivate
 
-## Plans
+### RequestService
 
-- `GET /projects/:projectId/plans`
-- `POST /projects/:projectId/plans/generate`
-- `PATCH /plans/:planId`
-- `POST /plans/:planId/approve`
+- create
+- list
+- get
+- approve
+- reject
+- cancel
+- process
 
-## Requests
+### SpecificationService
 
-- `GET /requests`
-- `POST /requests`
-- `GET /requests/:requestId`
-- `PATCH /requests/:requestId`
-- `POST /requests/:requestId/approve`
-- `POST /requests/:requestId/reject`
+- generate
+- listVersions
+- getVersion
+- createRevision
+- approve
+- reject
+- compare
 
-## Tasks
+### PlanService
 
-- `GET /tasks`
-- `GET /tasks/:taskId`
-- `PATCH /tasks/:taskId`
-- `POST /tasks/:taskId/approve`
-- `POST /tasks/:taskId/pause`
-- `POST /tasks/:taskId/retry`
-- `POST /tasks/:taskId/cancel`
-- `POST /tasks/claim`
-- `POST /tasks/:taskId/heartbeat`
-- `POST /tasks/:taskId/complete`
-- `POST /tasks/:taskId/fail`
+- generate
+- listVersions
+- getVersion
+- createRevision
+- approve
+- reject
+- compare
 
-## Agents
+### TaskService
 
-- `GET /agents`
-- `POST /agents/register`
-- `GET /agents/:agentId`
-- `POST /agents/:agentId/heartbeat`
-- `POST /agents/:agentId/pause`
-- `POST /agents/:agentId/resume`
+- list
+- get
+- create
+- update
+- approve
+- pause
+- resume
+- retry
+- cancel
+- claim
+- heartbeat
+- submitBuilderResult
+- submitVerificationResult
 
-## Runs and Reports
+### RunService
 
-- `POST /runs/morning`
-- `POST /runs/tasks`
-- `GET /runs`
-- `GET /runs/:runId`
-- `GET /reports`
-- `GET /reports/:reportId`
+- startMorning
+- startExecution
+- get
+- list
+- cancel
+- recoverInterrupted
 
-## Activity
+### ReportService
 
-- `GET /activity`
-- `GET /events/stream`
+- generate
+- get
+- list
+- renderMarkdown
+- writeToFile
 
-## Validation
+### AgentService
 
-All payloads are validated with Zod. IDs use MongoDB ObjectId strings. Pagination uses cursor-based pagination.
+- register
+- heartbeat
+- pause
+- resume
+- list
+- get
+
+### ActivityService
+
+- append
+- list
 
 ## Concurrency
 
-Mutation endpoints must use revision fields where manual edits can conflict. Stale updates return HTTP 409.
+Task claims use atomic compare-and-set semantics and leases. Mutable user-edited entities use revision checks. A stale revision returns a domain conflict error rather than an HTTP status.
+
+## CLI Mapping
+
+Commands map to these services directly. The CLI converts domain errors into human-readable messages, JSON output, and documented process exit codes.
